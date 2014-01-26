@@ -126,6 +126,50 @@ class MyHandler(BaseHTTPRequestHandler):
             if 'User-Agent' in self.headers and \
                'AppleTV' in self.headers['User-Agent']:
                 
+                # serve the plex icon
+                if self.headers['Host'] == 'a1.phobos.apple.com' and self.path.endswith(".png"):
+                    # possible icon
+                    basename = path.basename(self.path)
+                    iconname, ext = basename.split('.')
+                    dprint(__name__, 2, "serving icon {0}", iconname)
+                    name, rez = iconname.split('@')
+                    dprint(__name__, 2, "icon name: {0} at {1}", name, rez)
+                    hosticons = {
+                        'www.icloud.com': 'Theater',
+                        'atv.hbogo.com': 'HBOGo',
+                        'atv.qello.com': 'QelloV2',
+                        'appletv.app.hulu.com': 'huluplus',
+                        'appletv.vevo.com': 'VevoV1',
+                        'apps.sho.com': 'SmithsonianBlue',
+                        'watchdisneyjunior.go.com': 'DisneyJR',
+                        'watchdisneychannel.go.com': 'DisneyChannel_V2',
+                        'watchdisneyxd.go.com': 'DisneyXD_V2',
+                        'ssl.weather.com': 'weatherchannel'
+                    }
+                    if name == hosticons.get(g_param['HostToIntercept']):
+                        dprint(__name__, 2, "getting plex icon")
+                        f = open(sys.path[0] + sep + "assets" + sep + "thumbnails" + sep + "icon@" + rez + ".png", "rb")
+                        self.send_response(200)
+                        self.send_header('Content-type', 'image/png')
+                        self.end_headers()
+                        self.wfile.write(f.read())
+                        f.close()
+                        return
+                    else:
+                        dprint(__name__, 2, "getting app icon")
+                        self.send_response(200)
+                        self.send_header('Content-type', 'image/png')
+                        self.end_headers()
+                        self.wfile.write(urllib.urlopen('http://' + self.headers['Host'] + self.path).read())
+                        return
+                elif self.headers['Host'] == 'a1.phobos.apple.com':
+                	# something other than an icon was requested
+                    self.send_response(200)
+                    self.send_header('Content-type', self.headers['Content-type'])
+                    self.end_headers()
+                    self.wfile.write(urllib.urlopen('http://' + self.headers['Host'] + self.path).read())
+                    return
+                    
                 # recieve simple logging messages from the ATV
                 if 'PlexConnectATVLogLevel' in options:
                     dprint('ATVLogger', int(options['PlexConnectATVLogLevel']), options['PlexConnectLog'])
