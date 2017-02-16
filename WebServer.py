@@ -130,7 +130,7 @@ class MyHandler(BaseHTTPRequestHandler):
                 if self.headers['Host'] == 'a1.phobos.apple.com' and self.path.endswith(".png"):
                     # possible icon
                     basename = path.basename(self.path)
-                    iconname, ext = basename.split('.')
+                    iconname, ext = basename.rsplit('.', 1)
                     dprint(__name__, 2, "serving icon {0}", iconname)
                     name, rez = iconname.split('@')
                     dprint(__name__, 2, "icon name: {0} at {1}", name, rez)
